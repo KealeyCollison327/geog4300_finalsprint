@@ -1,0 +1,48 @@
+---
+title: "Final Sprint"
+author: "Lauren"
+date: "2024-11-21"
+output: html_document
+---
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+files<-list.files("data",recursive = TRUE,full.names = TRUE,pattern="puf")
+```
+
+Confidence Intervals
+```{r}
+setting_covid<-map_df(files,read_csv) %>%
+  filter(HADCOVIDRV == 1 | HADCOVIDRV == 2) %>% 
+  mutate(HADCOVIDRV = ifelse(HADCOVIDRV == 2, 0, HADCOVIDRV))
+
+setting_covid <- setting_covid %>% 
+  filter(SETTING != -88 & SETTING != -99)
+
+setting_covid1 <-setting_covid %>%
+  group_by(SETTING,HADCOVIDRV) %>%
+  summarise(count=sum(PWEIGHT))
+
+setting_covid1 <- setting_covid1 %>% 
+  group_by(SETTING) %>% 
+  mutate(total_set = sum(count))
+
+setting_covid2 <- setting_covid1 %>% 
+  group_by(SETTING, HADCOVIDRV) %>% 
+  summarise(percent = count/total_set, count=count, total_set=total_set)
+
+setting_covid3 <- setting_covid2 %>%
+  filter(HADCOVIDRV == 1)
+
+#setting_covid_summary<-setting_covid1 %>% mutate(p=percent, se=sqrt((p*(1-p))/total_set, z.score=qnorm(.975), moe=se*z.score, CI.lower=p-moe, CI.upper=p+moe))
+                                            
+#ggplot(setting_covid_summary %>% mutate(SETTING=reorder(SETTING,p)))+
+  #geom_linerange(aes(xmin=CI.lower,xmax=CI.upper,y=SETTING,group=SETTING)) +
+  #geom_point(aes(x=p,y=SETTING, ))
+
+#ggplot(setting_covid_summary %>% mutate(Region=reorder(SETTING,p)))+
+  #geom_linerange(aes(ymin=CI.lower,ymax=CI.upper,x=Region,group=Region)) +
+  #geom_point(aes(y=earn_mean,x=Region))
+```
+
